@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const userModel = require('../models/user.model');
+const validator = require('validator');
+const logEvent = require('../utils/logger');
 
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000; // 15min lockout period
@@ -11,6 +13,14 @@ async function register(req, res) {
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Missing fields' });
+    }
+    
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email' });
+    }
+
+    if (!validator.isStrongPassword(password)) {
+      return res.status(400).json({ message: 'Weak password' });
     }
 
     const existing = userModel.findByEmail(email);
@@ -39,6 +49,12 @@ async function login(req, res) {
 
     const user = userModel.findByEmail(email);
     if (!user) {
+      //Logging invalid email(user not found) attempt
+      logEvent({
+        action: 'LOGIN',
+        status: 'FAILED_USER_NOT_FOUND',
+        ipAddress: req.ip,
+      });
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
@@ -56,9 +72,25 @@ async function login(req, res) {
       let lockUntil = null;
       if (attempts >= MAX_ATTEMPTS) {
         lockUntil = Date.now() + LOCK_TIME;     //doing account lockout if attempts exceed set threshold
+
+        //Logging account-locked attempt
+        logEvent({
+          userId: user.id,
+          action: 'ACCOUNT_LOCK',
+          status: 'LOCKED',
+          ipAddress: req.ip,
+        });
       }
 
       userModel.updateFailedAttempts(user.id, attempts, lockUntil);    //updating failed attempts in db
+
+      //Logging invalid password attempt
+      logEvent({
+        userId: user.id,
+        action: 'LOGIN',
+        status: 'FAILED_PASSWORD',
+        ipAddress: req.ip,
+      });
 
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -87,6 +119,15 @@ async function login(req, res) {
       };
 
       req.session.lastActivity = Date.now();
+      
+      //Logging successful login attempt
+      logEvent({
+        userId: user.id,
+        action: 'LOGIN',
+        status: 'SUCCESS',
+        ipAddress: req.ip,
+      });
+      
       res.json({ message: "Login successful" });
     });
 
@@ -97,9 +138,31 @@ async function login(req, res) {
 
 //User logout
 function logout(req, res) {
+
+  //Logging logout attempt
+  logEvent({
+    userId: req.session?.user?.id,
+    action: 'LOGOUT',
+    status: 'SUCCESS',
+    ipAddress: req.ip,
+  });
+  
   req.session.destroy(() => {
     res.clearCookie('connect.sid');
     res.json({ message: 'Logged out securely' });
+  });
+}
+
+//Current User
+function getCurrentUser(req, res) {
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "Not authenticated",
+    });
+  }
+
+  res.json({
+    user: req.session.user,
   });
 }
 
@@ -107,4 +170,5 @@ module.exports = {
   register,
   login,
   logout,
+  getCurrentUser
 };

@@ -1,9 +1,11 @@
+const logEvent = require('../utils/logger');
+
 //Session timeout -> Upon user inactivity scenario
 function sessionTimeout(req, res, next) {
   if (!req.session.user) return next();
 
   const now = Date.now();
-  const TIMEOUT = 10 * 1000; // testing
+  const TIMEOUT = 5* 60 * 1000;      //5 min. session duration
 
   //Last Activity Safety Check
   if (!req.session.lastActivity) {
@@ -14,6 +16,15 @@ function sessionTimeout(req, res, next) {
   const diff = now - req.session.lastActivity;
 
   if (diff > TIMEOUT) {
+
+    //Logging session-expired event
+    logEvent({
+      userId: req.session.user.id,
+      action: 'SESSION_EXPIRED',
+      status: 'TIMEOUT',
+      ipAddress: req.ip,
+    });
+
     return req.session.destroy(() => {
       res.clearCookie('connect.sid');
       return res.status(401).json({ message: 'Session expired' });
