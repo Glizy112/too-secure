@@ -1,0 +1,16 @@
+{
+  "lastLogin": "2025-04-18T21:42:00",
+  "lastLoginLocation": "Ludhiana, IN",
+  "lastLoginDevice": "Chrome on Windows",
+  "accountCreated": "2024-11-03T09:15:00",
+  "activeSessions": 1,
+  "maxSessions": 3,
+  "passwordLastChanged": "2025-03-01T14:00:00",
+  "twoFactorEnabled": false,
+  "recentActivity": [
+    { "event": "LOGIN",           "timestamp": "2025-04-18T21:42:00", "status": "success" },
+    { "event": "LOGIN",           "timestamp": "2025-04-17T10:15:00", "status": "success" },
+    { "event": "SESSION_EXPIRED", "timestamp": "2025-04-16T23:59:00", "status": "info"    },
+    { "event": "LOGIN",           "timestamp": "2025-04-15T08:30:00", "status": "success" }
+  ]
+}

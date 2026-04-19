@@ -32,7 +32,7 @@ app.use(
     cookie: {
       httpOnly: true,          //prevents JS access (protects from stealing cookies by XSS attacks)
       secure: false,           //set it true in production (for HTTPS)
-      sameSite: 'strict',      //CSRF protection
+      sameSite: 'lax',      //CSRF protection
       maxAge: 15 * 60 * 1000,  //15 min session limit
     },
   })

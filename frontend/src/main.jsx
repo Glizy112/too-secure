@@ -4,10 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import './index.css'
 import App from './App.jsx'
-import { initializeCsrf } from "./api/axios";
+//import { initializeCsrf } from "./api/axios";
 
-async function bootstrap() {
-  await initializeCsrf();
+//async function bootstrap() {
+  //await initializeCsrf();
 
   createRoot(document.getElementById('root')).render(
     <BrowserRouter>
@@ -16,6 +16,6 @@ async function bootstrap() {
       </AuthProvider>
     </BrowserRouter>
   )
-}
+//}
 
-bootstrap();
+//bootstrap();
